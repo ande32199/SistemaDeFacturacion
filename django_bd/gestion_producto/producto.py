@@ -1,7 +1,7 @@
 import wx
 from clases_principales.crear_menu_secundario import PanelBase
 from db_connection import Producto, Proveedor, Categoria
-from gestion_producto.CrearActualizar import ProductoDialog
+from gestion_producto.CrearActualizar import FormularioProducto
 
 class PanelProductos(PanelBase):
     def __init__(self, parent):
@@ -40,23 +40,14 @@ class PanelProductos(PanelBase):
             self.list_control.SetItem(index, 5, proveedor)
     
     def on_nuevo(self, event):
-        dlg = ProductoDialog(self, title="Nuevo Producto")
-        if dlg.ShowModal() == wx.ID_OK:
-            self.actualizar_lista()
+        dlg = FormularioProducto(
+            self, 
+            title="Nuevo Producto",
+            actualizar_lista_callback=self.actualizar_lista
+        )
+        dlg.ShowModal()
         dlg.Destroy()
-    
-    def on_editar(self, event):
-        selected = self.list_control.GetFirstSelected()
-        if selected >= 0:
-            codigo = self.list_control.GetItem(selected, 0).GetText()
-            producto = Producto.objects.get(codigo=codigo)
-            dlg = ProductoDialog(self, title="Editar Producto", producto=producto)
-            if dlg.ShowModal() == wx.ID_OK:
-                self.actualizar_lista()
-            dlg.Destroy()
-        else:
-            wx.MessageBox("Seleccione un producto", "Error", wx.ICON_ERROR)
-    
+
     def on_eliminar(self, event):
         selected = self.list_control.GetFirstSelected()
         if selected >= 0:
@@ -67,5 +58,31 @@ class PanelProductos(PanelBase):
                 producto = Producto.objects.get(codigo=codigo)
                 producto.delete()
                 self.actualizar_lista()
+        else:
+            wx.MessageBox("Seleccione un producto", "Error", wx.ICON_ERROR)
+
+    def on_editar(self, event):
+        selected = self.list_control.GetFirstSelected()
+        if selected >= 0:
+            try:
+                codigo = self.list_control.GetItem(selected, 0).GetText()
+                if not codigo:
+                    wx.MessageBox("Error: Código de producto no válido", "Error", wx.ICON_ERROR)
+                    return
+                
+                try:
+                    producto = Producto.objects.get(codigo=codigo)
+                    dlg = FormularioProducto(
+                        self, 
+                        title="Editar Producto", 
+                        producto=producto,
+                        actualizar_lista_callback=self.actualizar_lista
+                    )
+                    dlg.ShowModal()
+                    dlg.Destroy()
+                except Producto.DoesNotExist:
+                    wx.MessageBox("No se encontró el producto en la base de datos", "Error", wx.ICON_ERROR)
+            except Exception as e:
+                wx.MessageBox(f"Error al abrir el producto: {str(e)}", "Error", wx.ICON_ERROR)
         else:
             wx.MessageBox("Seleccione un producto", "Error", wx.ICON_ERROR)

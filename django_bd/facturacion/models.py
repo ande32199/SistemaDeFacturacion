@@ -26,7 +26,7 @@ class Proveedor(models.Model):
     direccion = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.nombre
+        return f"{self.ruc} {self.nombre}"
 
 class Producto(models.Model):
     codigo = models.CharField(max_length=10, primary_key=True)
