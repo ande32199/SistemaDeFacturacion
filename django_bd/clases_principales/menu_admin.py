@@ -30,7 +30,7 @@ class VentanaAdmin(wx.Frame):
         self.sizer.Add(self.notebook, 1, wx.EXPAND | wx.ALL, 5)
         
         # Botón "Volver al Menú"
-        btn_volver = wx.Button(self.panel, label="Volver al Menú Principal")
+        btn_volver = wx.Button(self.panel, label="&Volver al Menú Principal")
         btn_volver.Bind(wx.EVT_BUTTON, self.volver_al_menu)
         self.sizer.Add(btn_volver, 0, wx.ALL | wx.CENTER, 10)
         
@@ -42,3 +42,52 @@ class VentanaAdmin(wx.Frame):
         """Volver a la ventana de bienvenida"""
         self.Hide()
         self.GetParent().Show()
+
+class VentanaLogin(wx.Dialog):
+    def __init__(self, parent):
+        super().__init__(parent, title="Inicio de Sesión - Administrador", size=(400, 200))
+        panel = wx.Panel(self)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        # Campos de usuario y contraseña
+        self.txt_usuario = wx.TextCtrl(panel)
+        self.txt_contrasena = wx.TextCtrl(panel, style=wx.TE_PASSWORD)
+        
+        sizer.Add(wx.StaticText(panel, label="Usuario:"), 0, wx.ALL, 5)
+        sizer.Add(self.txt_usuario, 0, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(wx.StaticText(panel, label="Contraseña:"), 0, wx.ALL, 5)
+        sizer.Add(self.txt_contrasena, 0, wx.EXPAND | wx.ALL, 5)
+        
+        # Botones
+        btn_login = wx.Button(panel, label="Iniciar Sesión")
+        btn_cancelar = wx.Button(panel, label="Cancelar")
+        btn_login.Bind(wx.EVT_BUTTON, self.validar_login)
+        btn_cancelar.Bind(wx.EVT_BUTTON, self.cancelar)
+        
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer.Add(btn_login, 1, wx.EXPAND | wx.ALL, 5)
+        btn_sizer.Add(btn_cancelar, 1, wx.EXPAND | wx.ALL, 5)
+        
+        sizer.Add(btn_sizer, 0, wx.CENTER)
+        panel.SetSizer(sizer)
+        
+    def validar_login(self, event):
+        """Validar usuario y contraseña"""
+        username = self.txt_usuario.GetValue()
+        password = self.txt_contrasena.GetValue()
+        
+        # Validar contra la base de datos (usa el ORM de Django)
+        from django.contrib.auth.hashers import check_password
+        from db_connection import AdminPassword
+        
+        try:
+            user = AdminPassword.objects.get(username=username)
+            if check_password(password, user.password):
+                self.EndModal(wx.ID_OK)
+            else:
+                wx.MessageBox("Contraseña incorrecta", "Error", wx.ICON_ERROR)
+        except AdminPassword.DoesNotExist:
+            wx.MessageBox("Usuario no encontrado", "Error", wx.ICON_ERROR)
+
+    def cancelar(self, event):
+        self.EndModal(wx.ID_CANCEL)
