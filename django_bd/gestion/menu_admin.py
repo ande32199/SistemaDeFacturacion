@@ -1,7 +1,7 @@
 import wx
-from gestion_producto.producto import PanelProductos
-from gestion_clientes.cliente import PanelClientes
-from gestion_proveedor_categoria.interface import PanelProveedor
+from gestion.gestion_producto.producto import PanelProductos
+from gestion.gestion_clientes.cliente import PanelClientes
+from gestion.gestion_proveedor_categoria.interface import PanelProveedor
 
 
 

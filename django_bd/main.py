@@ -1,6 +1,6 @@
 import wx
-from clases_principales.menu_admin import VentanaAdmin,VentanaLogin
-from clases_principales.menu_compras import MenuCompras
+from gestion.menu_admin import VentanaAdmin,VentanaLogin
+from gestion.menu_compras import MenuCompras
 
 
 class VentanaBienvenida(wx.Frame):

@@ -1,7 +1,7 @@
 import wx
 from clases_principales.crear_menu_secundario import PanelBase
 from db_connection import Proveedor
-from gestion_proveedor_categoria.formulario_proveedor import FormularioProveedor
+from gestion.gestion_proveedor_categoria.formulario_proveedor import FormularioProveedor
 
 class PanelProveedor(PanelBase):
     def __init__(self, parent):

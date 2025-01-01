@@ -1,7 +1,7 @@
 import wx
 from clases_principales.crear_menu_secundario import PanelBase
 from db_connection import Producto, Proveedor, Categoria
-from gestion_producto.CrearActualizar import FormularioProducto
+from gestion.gestion_producto.CrearActualizar import FormularioProducto
 
 class PanelProductos(PanelBase):
     def __init__(self, parent):

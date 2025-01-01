@@ -1,8 +1,8 @@
 import wx
 from clases_principales.crear_menu_secundario import PanelBase
 from db_connection import ObtenerClientes, Cliente
-from gestion_clientes.agregar_cliente import AgregarCliente
-from gestion_clientes.actualiza import ActualizaCliente
+from gestion.gestion_clientes.agregar_cliente import AgregarCliente
+from gestion.gestion_clientes.actualiza import ActualizaCliente
 
 class PanelClientes(PanelBase):
     def __init__(self, parent):
