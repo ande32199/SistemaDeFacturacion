@@ -118,9 +118,8 @@ python main.py
 
 ## Contacto
 
-Si tienes preguntas o sugerencias, no dudes en contactarme:
+Si tienes preguntas o sugerencias, contáctame:
 
-**Roddy Romero**  
-[agus-romero96](https://github.com/agus-romero96)
+- GitHub: [@agus-romero96](https://github.com/agus-romero96)
 ```
 
