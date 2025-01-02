@@ -56,7 +56,7 @@ class Producto(models.Model):
         return self.nombre
 
 class Factura(models.Model):
-    PORCENTAJE_IVA = Decimal('0.15')  # 15% IVA para Ecuador
+    PORCENTAJE_IVA = Decimal('0.15')  # 15% del IVA puede ser modificable
     
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     fecha = models.DateTimeField(auto_now_add=True)
