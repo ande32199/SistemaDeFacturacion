@@ -1,8 +1,8 @@
 import wx
-from clases_principales.agregar_actualiza import FormularioCliente
-from db_connection import Proveedor
+from gestion.agregar_actualiza import Formulario
+from gestion.db_connection import Proveedor
 
-class FormularioProveedor(FormularioCliente):
+class FormularioProveedor(Formulario):
     def __init__(self, parent, proveedor=None, title="Formulario de Proveedor", actualizar_lista_callback=None):
         super().__init__(parent, title)
         self.actualizar_lista_callback = actualizar_lista_callback  # Guardar el callback
@@ -12,8 +12,6 @@ class FormularioProveedor(FormularioCliente):
         self.modo_edicion = proveedor is not None
         
         # Remover campos no necesarios
-        self.email_label.Destroy()
-        self.email_input.Destroy()
         self.surname_label.Destroy()
         self.surname_input.Destroy()
         
@@ -21,9 +19,6 @@ class FormularioProveedor(FormularioCliente):
         self.name_label.SetLabel("Razón Social:")
         
         # Añadir campo RUC antes del nombre
-        self.sizer.Clear()  # Limpiar el sizer para reorganizar los elementos
-        
-        # Campo RUC
         self.ruc_label = wx.StaticText(self.panel, label="RUC:")
         self.ruc_input = wx.TextCtrl(self.panel)
         
@@ -33,12 +28,15 @@ class FormularioProveedor(FormularioCliente):
             self.ruc_input.SetBackgroundColour(wx.LIGHT_GREY)
         
         # Reorganizar todos los campos
+        self.sizer.Clear()  # Limpiar el sizer para reorganizar los elementos
         self.sizer.Add(self.ruc_label, 0, wx.ALL, 5)
         self.sizer.Add(self.ruc_input, 0, wx.EXPAND | wx.ALL, 5)
         self.sizer.Add(self.name_label, 0, wx.ALL, 5)
         self.sizer.Add(self.name_input, 0, wx.EXPAND | wx.ALL, 5)
         self.sizer.Add(self.telefono_label, 0, wx.ALL, 5)
         self.sizer.Add(self.telefono_input, 0, wx.EXPAND | wx.ALL, 5)
+        self.sizer.Add(self.email_label, 0, wx.ALL, 5)  # Utiliza el email_label existente
+        self.sizer.Add(self.email_input, 0, wx.EXPAND | wx.ALL, 5)  # Utiliza el email_input existente
         self.sizer.Add(self.direccion_label, 0, wx.ALL, 5)
         self.sizer.Add(self.direccion_input, 1, wx.EXPAND | wx.ALL, 5)
         
@@ -56,9 +54,10 @@ class FormularioProveedor(FormularioCliente):
         """Carga los datos del proveedor existente en el formulario"""
         self.ruc_input.SetValue(self.proveedor_existente.ruc)
         self.name_input.SetValue(self.proveedor_existente.nombre)
+        self.email_input.SetValue(self.proveedor_existente.email or '')
         self.telefono_input.SetValue(self.proveedor_existente.telefono or '')
         self.direccion_input.SetValue(self.proveedor_existente.direccion or '')
-        
+
     def guardar_proveedor(self, event):
         """Método para guardar o actualizar el proveedor"""
         if self.validar_datos():
@@ -90,7 +89,8 @@ class FormularioProveedor(FormularioCliente):
             'ruc': self.ruc_input.GetValue().strip(),
             'nombre': self.name_input.GetValue().strip(),
             'telefono': self.telefono_input.GetValue().strip(),
-            'direccion': self.direccion_input.GetValue().strip()
+            'direccion': self.direccion_input.GetValue().strip(),
+            'email': self.email_input.GetValue().strip()  # Corregido: email dentro del diccionario
         }
     
     def validar_datos(self):
@@ -111,29 +111,3 @@ class FormularioProveedor(FormularioCliente):
             return False
         
         return True
-
-# Ejemplo de uso para editar un proveedor existente:
-def editar_proveedor(proveedor_existente):
-    app = wx.App()
-    formulario = FormularioProveedor(None, proveedor=proveedor_existente, title="Editar Proveedor")
-    formulario.agregar_botones(formulario.guardar_proveedor, lambda evt: formulario.Close())
-    formulario.Show()
-    app.MainLoop()
-
-# Ejemplo de uso para crear un nuevo proveedor:
-def nuevo_proveedor():
-    app = wx.App()
-    formulario = FormularioProveedor(None)
-    formulario.agregar_botones(formulario.guardar_proveedor, lambda evt: formulario.Close())
-    formulario.Show()
-    app.MainLoop()
-
-# Para usar en tu código:
-"""
-# Para editar un proveedor existente:
-proveedor = Proveedor.objects.get(ruc='1234567890123')
-editar_proveedor(proveedor)
-
-# Para crear un nuevo proveedor:
-nuevo_proveedor()
-"""

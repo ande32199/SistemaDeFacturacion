@@ -1,5 +1,5 @@
 import wx
-from db_connection import Producto, Proveedor, Categoria, Factura, DetalleFactura, Cliente, generar_factura
+from gestion.db_connection import Producto, Proveedor, Categoria, Factura, DetalleFactura, Cliente, generar_factura
 from decimal import Decimal
 
 class MenuCompras(wx.Frame):

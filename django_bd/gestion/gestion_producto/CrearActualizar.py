@@ -1,5 +1,5 @@
 import wx
-from db_connection import Producto,Proveedor,Categoria
+from gestion.db_connection import Producto,Proveedor,Categoria
 
 
 class FormularioProducto(wx.Dialog):

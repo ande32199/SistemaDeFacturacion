@@ -1,6 +1,6 @@
 import wx
 
-class FormularioCliente(wx.Frame):
+class Formulario(wx.Dialog):
     def __init__(self, parent, title):
         super().__init__(parent, title=title, size=(400, 500))
         self.panel = wx.Panel(self)
@@ -38,13 +38,13 @@ class FormularioCliente(wx.Frame):
 
     def agregar_botones(self, guardar_callback, cancelar_callback=None):
         # Botón para guardar
-        self.save_button = wx.Button(self.panel, label="Guardar")
+        self.save_button = wx.Button(self.panel, label="&Guardar")
         self.sizer.Add(self.save_button, 0, wx.ALIGN_CENTER | wx.ALL, 10)
         self.save_button.Bind(wx.EVT_BUTTON, guardar_callback)
 
         # Botón para cancelar (opcional)
         if cancelar_callback:
-            self.cancel_button = wx.Button(self.panel, label="Cancelar")
+            self.cancel_button = wx.Button(self.panel, label="&Cancelar")
             self.sizer.Add(self.cancel_button, 0, wx.ALIGN_CENTER | wx.ALL, 10)
             self.cancel_button.Bind(wx.EVT_BUTTON, cancelar_callback)
 

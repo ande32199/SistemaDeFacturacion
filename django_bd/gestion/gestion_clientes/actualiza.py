@@ -1,10 +1,11 @@
 import wx
-from clases_principales.agregar_actualiza import FormularioCliente
-from db_connection import Cliente
+from gestion.agregar_actualiza import Formulario
+from gestion.db_connection import Cliente
 
-class ActualizaCliente(FormularioCliente):
-    def __init__(self, cliente):
+class ActualizaCliente(Formulario):
+    def __init__(self, cliente,actualizar_lista_callback=None):
         super().__init__(None, title="Actualizar Cliente")
+        self.actualizar_lista_callback = actualizar_lista_callback  # Callback para actualizar lista
 
         if not cliente:
             wx.MessageBox("El cliente no es válido o no se ha proporcionado.", "Error", wx.ICON_ERROR)
@@ -32,10 +33,10 @@ class ActualizaCliente(FormularioCliente):
             return
 
         # Agregar botones
-        self.agregar_botones(self.on_save)
+        self.agregar_botones(self.guardar, self.cancelar)
         self.Show()
 
-    def on_save(self, event):
+    def guardar(self, event):
         try:
             self.cliente.nombre = self.name_input.GetValue()
             self.cliente.apellido = self.surname_input.GetValue()
@@ -43,7 +44,12 @@ class ActualizaCliente(FormularioCliente):
             self.cliente.telefono = self.telefono_input.GetValue()
             self.cliente.direccion = self.direccion_input.GetValue()
             self.cliente.save()
+            if self.actualizar_lista_callback:
+                self.actualizar_lista_callback()
             wx.MessageBox("Cliente actualizado con éxito.", "Éxito", wx.ICON_INFORMATION)
             self.Close()
         except Exception as e:
             wx.MessageBox(f"Error al actualizar el cliente: {e}", "Error", wx.ICON_ERROR)
+
+    def cancelar(self, event):
+        self.Close()

@@ -1,7 +1,7 @@
 import wx
 from gestion.gestion_producto.producto import PanelProductos
 from gestion.gestion_clientes.cliente import PanelClientes
-from gestion.gestion_proveedor_categoria.interface import PanelProveedor
+from gestion.gestion_proveedor_categoria.ui_proveedor_categoria import PanelProveedor,PanelCategoria
 
 
 
@@ -20,11 +20,13 @@ class VentanaAdmin(wx.Frame):
         self.page_clientes = PanelClientes(self.notebook)
         self.page_productos = PanelProductos(self.notebook)
         self.page_proveedores = PanelProveedor(self.notebook)
+        self.page_categoria = PanelCategoria(self.notebook)
         
         # Añadir las páginas al notebook
         self.notebook.AddPage(self.page_clientes, "Gestión de Clientes")
         self.notebook.AddPage(self.page_productos, "Gestión de Productos")
         self.notebook.AddPage(self.page_proveedores, "Gestión de Proveedores")
+        self.notebook.AddPage(self.page_categoria, "Gestión de Categorías")
         
         # Añadir el notebook al sizer principal
         self.sizer.Add(self.notebook, 1, wx.EXPAND | wx.ALL, 5)
@@ -78,7 +80,7 @@ class VentanaLogin(wx.Dialog):
         
         # Validar contra la base de datos (usa el ORM de Django)
         from django.contrib.auth.hashers import check_password
-        from db_connection import AdminPassword
+        from gestion.db_connection import AdminPassword
         
         try:
             user = AdminPassword.objects.get(username=username)

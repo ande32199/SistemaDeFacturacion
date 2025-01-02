@@ -1,8 +1,8 @@
-from clases_principales.agregar_actualiza import FormularioCliente
-from db_connection import Cliente
+from gestion.agregar_actualiza import Formulario
+from gestion.db_connection import Cliente
 import wx
 
-class AgregarCliente(FormularioCliente):
+class AgregarCliente(Formulario):
     def __init__(self, actualizar_lista_callback=None):
         super().__init__(None, title="Agregar Cliente")
         self.actualizar_lista_callback = actualizar_lista_callback  # Callback para actualizar lista
@@ -14,7 +14,7 @@ class AgregarCliente(FormularioCliente):
         self.sizer.Insert(1, self.cedula_input, 0, wx.EXPAND | wx.ALL, 5)
 
         # Agregar botones
-        self.agregar_botones(self.guardar, self.on_cancel)
+        self.agregar_botones(self.guardar, self.cancelar)
         self.Show()
 
     def guardar(self, event):
@@ -49,5 +49,5 @@ class AgregarCliente(FormularioCliente):
         except Exception as e:
             wx.MessageBox(f"Error al guardar el cliente: {e}", "Error", wx.ICON_ERROR)
 
-    def on_cancel(self, event):
+    def cancelar(self, event):
         self.Close()

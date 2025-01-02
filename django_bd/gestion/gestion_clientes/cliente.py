@@ -1,6 +1,6 @@
 import wx
-from clases_principales.crear_menu_secundario import PanelBase
-from db_connection import ObtenerClientes, Cliente
+from gestion.crear_menu_secundario import PanelBase
+from gestion.db_connection import ObtenerClientes, Cliente
 from gestion.gestion_clientes.agregar_cliente import AgregarCliente
 from gestion.gestion_clientes.actualiza import ActualizaCliente
 
@@ -36,7 +36,7 @@ class PanelClientes(PanelBase):
             cedula = cliente_str.split(" ")[0]
             try:
                 cliente = Cliente.objects.get(cedula=cedula)
-                ActualizaCliente(cliente)
+                ActualizaCliente(cliente,actualizar_lista_callback=self.actualizar_lista)
                 self.actualizar_lista()
             except Cliente.DoesNotExist:
                 wx.MessageBox("Cliente no encontrado", "Error", wx.ICON_ERROR)
