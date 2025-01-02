@@ -3,7 +3,8 @@
 
 # Ignorar la carpeta del entorno virtual
 dependencias/
-
+# ignorar la carpeta facturas
+facturas/
 # Ignorar archivos generados por el sistema operativo
 __pycache__/
 *.pyc
