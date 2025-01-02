@@ -2,7 +2,7 @@
 
 Este proyecto es una aplicación de facturación desarrollada en Django. Permite gestionar clientes, productos, proveedores, categorías, inventario y facturas. Fue desarrollado como parte de un deber universitario.
 
-### Requisitos
+## Requisitos
 
 Para ejecutar este proyecto, asegúrate de tener instaladas las siguientes herramientas y configuraciones:
 
