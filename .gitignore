@@ -1,0 +1,13 @@
+# Ignorar el archivo de entorno
+.env
+
+# Ignorar la carpeta del entorno virtual
+dependencias/
+
+# Ignorar archivos generados por el sistema operativo
+__pycache__/
+*.pyc
+
+# Ignorar configuraciones de IDEs
+*.vscode/
+.idea/

@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-
+from decouple import config
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -19,9 +19,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-x8rieo(@%f2f()id07@an1ttv_-38b@8$qnzj91jn87ng$*me9'
-
+# Clave secreta
+SECRET_KEY = config('DJANGO_SECRET_KEY', default='clave-secreta-por-defecto')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -78,12 +77,11 @@ WSGI_APPLICATION = 'django_bd.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'facturacion',
-        'USER': 'root',
-        'PASSWORD': '@123ar.2024',
-        'HOST': 'localhost',
-        'PORT': '3306',
-    }
+        'NAME': config('DB_NAME', default='facturacion'),
+        'USER': config('DB_USER', default='root'),
+        'PASSWORD': config('DB_PASSWORD', default=''),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='3306'),    }
 }
 
 
