@@ -1,6 +1,5 @@
 import wx
-from gestion.db_connection import Producto,Proveedor,Categoria
-
+from gestion.db_connection import Producto, Proveedor, Categoria
 
 class FormularioProducto(wx.Dialog):
     def __init__(self, parent, title, producto=None, actualizar_lista_callback=None):
@@ -16,23 +15,23 @@ class FormularioProducto(wx.Dialog):
         self.agregar_texto("Nombre:", "nombre")
         self.agregar_texto("Precio:", "precio")
         self.agregar_texto("Stock:", "stock")
-        
+
         # Combobox para Categoría
-        self.agregar_combo("Categoría:", "categoria", 
-            [(c.id, c.nombre) for c in Categoria.objects.all()])
-        
+        self.agregar_combo("Categoría:", "categoria",
+                           [(c.id, c.nombre) for c in Categoria.objects.all()])
+
         # Combobox para Proveedor
         self.agregar_combo("Proveedor:", "proveedor",
-            [(p.ruc, p.nombre) for p in Proveedor.objects.all()])
+                           [(p.ruc, p.nombre) for p in Proveedor.objects.all()])
 
         # Botones
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.btn_guardar = wx.Button(self.panel, label="Guardar")
         self.btn_cancelar = wx.Button(self.panel, label="Cancelar")
-        
+
         btn_sizer.Add(self.btn_guardar, 0, wx.ALL, 5)
         btn_sizer.Add(self.btn_cancelar, 0, wx.ALL, 5)
-        
+
         self.sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER | wx.ALL, 5)
 
         # Eventos
@@ -59,20 +58,20 @@ class FormularioProducto(wx.Dialog):
         """Método para agregar campos de texto al formulario"""
         etiqueta_ctrl = wx.StaticText(self.panel, label=etiqueta)
         self.sizer.Add(etiqueta_ctrl, 0, wx.ALL, 5)
-        
+
         text_ctrl = wx.TextCtrl(self.panel)
         self.sizer.Add(text_ctrl, 0, wx.EXPAND | wx.ALL, 5)
-        
+
         self.campos[nombre] = text_ctrl
 
     def agregar_combo(self, etiqueta, nombre, opciones):
         """Método para agregar campos combo al formulario"""
         etiqueta_ctrl = wx.StaticText(self.panel, label=etiqueta)
         self.sizer.Add(etiqueta_ctrl, 0, wx.ALL, 5)
-        
-        combo = wx.ComboBox(self.panel, choices=[opcion[1] for opcion in opciones])
+
+        combo = wx.ComboBox(self.panel, choices=[opcion[1] for opcion in opciones], style=wx.CB_READONLY)
         self.sizer.Add(combo, 0, wx.EXPAND | wx.ALL, 5)
-        
+
         self.campos[nombre] = combo
 
     def al_guardar(self, event):
@@ -84,7 +83,7 @@ class FormularioProducto(wx.Dialog):
             stock_str = self.campos['stock'].GetValue().strip()
             categoria_nombre = self.campos['categoria'].GetValue()
             proveedor_nombre = self.campos['proveedor'].GetValue()
-            
+
             # Validaciones
             if not codigo or not nombre:
                 wx.MessageBox("Código y nombre son obligatorios", "Error", wx.ICON_ERROR)
@@ -121,10 +120,10 @@ class FormularioProducto(wx.Dialog):
 
             if self.actualizar_lista_callback:
                 self.actualizar_lista_callback()
-            
+
             wx.MessageBox("Producto guardado exitosamente", "Éxito", wx.OK | wx.ICON_INFORMATION)
             self.EndModal(wx.ID_OK)
-            
+
         except Exception as e:
             wx.MessageBox(f"Error al procesar los datos: {str(e)}", "Error", wx.ICON_ERROR)
 

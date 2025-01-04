@@ -19,6 +19,16 @@ class MenuCompras(wx.Frame):
         panel = wx.Panel(self)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
 
+        # Etiqueta para filtro
+        self.label_filtro = wx.StaticText(panel, label="Filtrar productos por:")
+        self.sizer.Add(self.label_filtro, 0, wx.LEFT | wx.TOP, 5)
+
+        # ComboBox para categorías
+        self.combo_categorias = wx.ComboBox(panel, choices=["Mostrar Todos"] + [cat.nombre for cat in Categoria.objects.all()], style=wx.CB_READONLY)
+        self.combo_categorias.Bind(wx.EVT_COMBOBOX, self.filtrar_por_categoria)
+        self.sizer.Add(self.combo_categorias, 0, wx.EXPAND | wx.ALL, 5)
+
+
         # Etiqueta para la lista de productos
         self.label_productos = wx.StaticText(panel, label="Lista de Productos:")
         self.sizer.Add(self.label_productos, 0, wx.LEFT | wx.TOP, 5)
@@ -78,6 +88,7 @@ class MenuCompras(wx.Frame):
 
         panel.SetSizer(self.sizer)
         self.actualizar_lista(None)
+
     def quitar_del_carrito(self, event):
         selected = self.carrito_list.GetFirstSelected()
         if selected == -1:
@@ -134,86 +145,6 @@ class MenuCompras(wx.Frame):
             self.list_control.SetItem(index, 3, str(producto.stock))
             self.list_control.SetItem(index, 4, producto.categoria.nombre if producto.categoria else '')
             self.list_control.SetItem(index, 5, producto.proveedor.nombre if producto.proveedor else '')
-
-    def generar_factura(self, event):
-        if not self.carrito:
-            wx.MessageBox('El carrito está vacío', 'Error', wx.OK | wx.ICON_ERROR)
-            return
-        # Crear un cuadro de diálogo personalizado para seleccionar o ingresar cliente
-        dlg = wx.Dialog(self, title="Seleccionar Cliente", size=(400, 200))
-        dlg_sizer = wx.BoxSizer(wx.VERTICAL)
-        # Etiqueta y cuadro de texto para ingresar la cédula
-        cedula_label = wx.StaticText(dlg, label="Ingrese la cédula del cliente (dejar en blanco para escoger un usuario de la lista):")
-        cedula_text = wx.TextCtrl(dlg)
-        dlg_sizer.Add(cedula_label, 0, wx.ALL, 5)
-        dlg_sizer.Add(cedula_text, 0, wx.EXPAND | wx.ALL, 5)
-        # Etiqueta y ComboBox para seleccionar cliente
-        combo_label = wx.StaticText(dlg, label="O seleccione un cliente de la lista:")
-        combo_box = wx.ComboBox(dlg, choices=[
-            f"{cliente.cedula} - {cliente.nombre} {cliente.apellido}" for cliente in Cliente.objects.all()
-        ], style=wx.CB_READONLY)
-        dlg_sizer.Add(combo_label, 0, wx.ALL, 5)
-        dlg_sizer.Add(combo_box, 0, wx.EXPAND | wx.ALL, 5)
-        # Botones para confirmar o cancelar
-        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        btn_ok = wx.Button(dlg, label="Aceptar")
-        btn_cancel = wx.Button(dlg, label="Cancelar")
-        btn_sizer.Add(btn_ok, 0, wx.RIGHT, 5)
-        btn_sizer.Add(btn_cancel, 0, wx.LEFT, 5)
-        dlg_sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER | wx.ALL, 5)
-        dlg.SetSizer(dlg_sizer)
-        # Eventos de botones
-        btn_ok.Bind(wx.EVT_BUTTON, lambda evt: dlg.EndModal(wx.ID_OK))
-        btn_cancel.Bind(wx.EVT_BUTTON, lambda evt: dlg.EndModal(wx.ID_CANCEL))
-        # Mostrar el cuadro de diálogo
-        if dlg.ShowModal() == wx.ID_OK:
-            try:
-                # Priorizar la cédula ingresada manualmente
-                cedula = cedula_text.GetValue().strip()
-                cliente = None
-                if cedula:  # Si se ingresó la cédula manualmente
-                    cliente = Cliente.objects.get(cedula=cedula)
-                elif combo_box.GetSelection() != wx.NOT_FOUND:  # Si se seleccionó un cliente del ComboBox
-                    cedula_seleccionada = combo_box.GetValue().split(' - ')[0]  # Extraer la cédula del formato
-                    cliente = Cliente.objects.get(cedula=cedula_seleccionada)
-                else:
-                    # mostrar un error
-                    wx.MessageBox('Seleccione un cliente o ingrese la cédula del cliente', 'Error', wx.OK | wx.ICON_ERROR)
-                    return
-                # Crear factura
-                factura = Factura.objects.create(cliente=cliente)
-                # Crear detalles
-                for item in self.carrito:
-                    DetalleFactura.objects.create(
-                        factura=factura,
-                        producto=item['producto'],
-                        cantidad=item['cantidad']
-                    )
-                # Actualizar stock
-                factura.actualizar_stock()
-                # Limpiar carrito
-                self.carrito = []
-                self.carrito_list.DeleteAllItems()
-                self.actualizar_lista(None)
-                self.Layout()
-                # Generar el PDF con los detalles de la factura
-                self.generar_pdf_factura(factura)
-                wx.MessageBox(f'Factura generada con éxito\nTotal: ${factura.total}', 'Éxito', wx.OK | wx.ICON_INFORMATION)
-                # Ocultar botones y el carrito
-                self.btn_quitar.Hide()
-                self.btn_facturar.Hide()
-                self.carrito_list.Hide()
-                self.Layout()
-            except Cliente.DoesNotExist:
-                wx.MessageBox('Cliente no encontrado. Agregue el cliente.', 'Error', wx.OK | wx.ICON_ERROR)
-                dlg.Destroy()
-                # Abrir el formulario para agregar un cliente
-                AgregarCliente(actualizar_lista_callback=self.actualizar_lista)
-            except Exception as e:
-                wx.MessageBox(f'Error al generar la factura: {str(e)}', 'Error', wx.OK | wx.ICON_ERROR)
-        dlg.Destroy()
-
-
     def volver(self, event):
         self.Parent.Show()
         self.Destroy()
@@ -328,4 +259,110 @@ class MenuCompras(wx.Frame):
         # Crear PDF
         doc.build(elementos)
 
+    def filtrar_por_categoria(self, event):
+        """Filtrar productos según la categoría seleccionada"""
+        categoria = self.combo_categorias.GetValue()
+        if categoria == "Mostrar Todos":
+            categoria = None
+        self.update_categoria(categoria=categoria)
+
+    def update_categoria(self, categoria=None):
+        """Actualizar la lista de productos, opcionalmente filtrados por categoría"""
+        self.list_control.DeleteAllItems()
+        
+        if categoria:
+            productos = Producto.objects.filter(categoria__nombre=categoria)
+        else:
+            productos = Producto.objects.all()
+        
+        for producto in productos:
+            index = self.list_control.InsertItem(self.list_control.GetItemCount(), producto.codigo)
+            self.list_control.SetItem(index, 1, producto.nombre)
+            self.list_control.SetItem(index, 2, str(producto.precio))
+            self.list_control.SetItem(index, 3, str(producto.stock))
+            self.list_control.SetItem(index, 4, producto.categoria.nombre)
+            self.list_control.SetItem(index, 5, producto.proveedor.nombre)
+
+    def generar_factura(self, event):
+        if not self.carrito:
+            wx.MessageBox('El carrito está vacío', 'Error', wx.OK | wx.ICON_ERROR)
+            return
+        # Crear un cuadro de diálogo personalizado para seleccionar o ingresar cliente
+        dlg = wx.Dialog(self, title="Seleccionar Cliente", size=(400, 200))
+        dlg_sizer = wx.BoxSizer(wx.VERTICAL)
+        # Etiqueta y cuadro de texto para ingresar la cédula
+        cedula_label = wx.StaticText(dlg, label="Ingrese la cédula del cliente (dejar en blanco para escoger un usuario de la lista):")
+        cedula_text = wx.TextCtrl(dlg)
+        dlg_sizer.Add(cedula_label, 0, wx.ALL, 5)
+        dlg_sizer.Add(cedula_text, 0, wx.EXPAND | wx.ALL, 5)
+        # Etiqueta y ComboBox para seleccionar cliente
+        combo_label = wx.StaticText(dlg, label="O seleccione un cliente de la lista:")
+        combo_box = wx.ComboBox(dlg, choices=[
+            f"{cliente.cedula} - {cliente.nombre} {cliente.apellido}" for cliente in Cliente.objects.all()
+        ], style=wx.CB_READONLY)
+        dlg_sizer.Add(combo_label, 0, wx.ALL, 5)
+        dlg_sizer.Add(combo_box, 0, wx.EXPAND | wx.ALL, 5)
+        # Botones para confirmar o cancelar
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_ok = wx.Button(dlg, label="Aceptar")
+        btn_cancel = wx.Button(dlg, label="Cancelar")
+        btn_sizer.Add(btn_ok, 0, wx.RIGHT, 5)
+        btn_sizer.Add(btn_cancel, 0, wx.LEFT, 5)
+        dlg_sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER | wx.ALL, 5)
+        dlg.SetSizer(dlg_sizer)
+        # Eventos de botones
+        btn_ok.Bind(wx.EVT_BUTTON, lambda evt: dlg.EndModal(wx.ID_OK))
+        btn_cancel.Bind(wx.EVT_BUTTON, lambda evt: dlg.EndModal(wx.ID_CANCEL))
+        # Mostrar el cuadro de diálogo
+        if dlg.ShowModal() == wx.ID_OK:
+            try:
+                # Priorizar la cédula ingresada manualmente
+                cedula = cedula_text.GetValue().strip()
+                cliente = None
+                if cedula:  # Si se ingresó la cédula manualmente
+                    cliente = Cliente.objects.get(cedula=cedula)
+                elif combo_box.GetSelection() != wx.NOT_FOUND:  # Si se seleccionó un cliente del ComboBox
+                    cedula_seleccionada = combo_box.GetValue().split(' - ')[0]  # Extraer la cédula del formato
+                    cliente = Cliente.objects.get(cedula=cedula_seleccionada)
+                else:
+                    # mostrar un error
+                    wx.MessageBox('Seleccione un cliente o ingrese la cédula del cliente', 'Error', wx.OK | wx.ICON_ERROR)
+                    return
+                # Crear factura
+                factura = Factura.objects.create(cliente=cliente)
+                # Crear detalles
+                for item in self.carrito:
+                    DetalleFactura.objects.create(
+                        factura=factura,
+                        producto=item['producto'],
+                        cantidad=item['cantidad']
+                    )
+                # Actualizar stock
+                factura.actualizar_stock()
+                # Guardar la categoría seleccionada
+                categoria = self.combo_categorias.GetValue()
+                if categoria == "Mostrar Todos":
+                    categoria = None
+                # Limpiar carrito
+                self.carrito = []
+                self.carrito_list.DeleteAllItems()
+                # Actualizar la lista con la categoría guardada
+                self.update_categoria(categoria)
+                self.Layout()
+                # Generar el PDF con los detalles de la factura
+                self.generar_pdf_factura(factura)
+                wx.MessageBox(f'Factura generada con éxito\nTotal: ${factura.total}', 'Éxito', wx.OK | wx.ICON_INFORMATION)
+                # Ocultar botones y el carrito
+                self.btn_quitar.Hide()
+                self.btn_facturar.Hide()
+                self.carrito_list.Hide()
+                self.Layout()
+            except Cliente.DoesNotExist:
+                wx.MessageBox('Cliente no encontrado. Agregue el cliente.', 'Error', wx.OK | wx.ICON_ERROR)
+                dlg.Destroy()
+                # Abrir el formulario para agregar un cliente
+                AgregarCliente(actualizar_lista_callback=self.actualizar_lista)
+            except Exception as e:
+                wx.MessageBox(f'Error al generar la factura: {str(e)}', 'Error', wx.OK | wx.ICON_ERROR)
+        dlg.Destroy()
 

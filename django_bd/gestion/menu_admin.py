@@ -45,20 +45,29 @@ class VentanaAdmin(wx.Frame):
         self.Hide()
         self.GetParent().Show()
 
+
 class VentanaLogin(wx.Dialog):
     def __init__(self, parent):
         super().__init__(parent, title="Inicio de Sesión - Administrador", size=(400, 200))
         panel = wx.Panel(self)
         sizer = wx.BoxSizer(wx.VERTICAL)
         
-        # Campos de usuario y contraseña
+        # Etiqueta y campo de usuario
+        lbl_usuario = wx.StaticText(panel, label="Usuario:")
         self.txt_usuario = wx.TextCtrl(panel)
-        self.txt_contrasena = wx.TextCtrl(panel, style=wx.TE_PASSWORD)
         
-        sizer.Add(wx.StaticText(panel, label="Usuario:"), 0, wx.ALL, 5)
+        sizer.Add(lbl_usuario, 0, wx.ALL, 5)
         sizer.Add(self.txt_usuario, 0, wx.EXPAND | wx.ALL, 5)
-        sizer.Add(wx.StaticText(panel, label="Contraseña:"), 0, wx.ALL, 5)
+        
+        # Etiqueta y campo de contraseña
+        lbl_contrasena = wx.StaticText(panel, label="Contraseña:")
+        self.txt_contrasena = wx.TextCtrl(panel, style=wx.TE_PASSWORD | wx.TE_PROCESS_ENTER)
+        
+        sizer.Add(lbl_contrasena, 0, wx.ALL, 5)
         sizer.Add(self.txt_contrasena, 0, wx.EXPAND | wx.ALL, 5)
+        
+        # Evento para presionar Enter en el campo de contraseña
+        self.txt_contrasena.Bind(wx.EVT_TEXT_ENTER, self.validar_login)
         
         # Botones
         btn_login = wx.Button(panel, label="Iniciar Sesión")
@@ -77,11 +86,8 @@ class VentanaLogin(wx.Dialog):
         """Validar usuario y contraseña"""
         username = self.txt_usuario.GetValue()
         password = self.txt_contrasena.GetValue()
-        
-        # Validar contra la base de datos (usa el ORM de Django)
         from django.contrib.auth.hashers import check_password
         from gestion.db_connection import AdminPassword
-        
         try:
             user = AdminPassword.objects.get(username=username)
             if check_password(password, user.password):
