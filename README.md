@@ -97,11 +97,14 @@ python manage.py runserver
 Luego, accede al navegador en la dirección: [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
 ---
-### 8. Antes de iniciar
-ejecuta el archivo admin_password y sigue las instrucciones para generar un nuevo usuario administrador
-para cargar datos de prueba al serbidor estando dentro del proyecto
-```bash
-python manage.py loaddata datos.json
+### 8. Configurar el usuario administrador
+Antes de iniciar, es necesario configurar un usuario administrador:
+
+1. Ejecuta el archivo `admin_password` y sigue las instrucciones para generar un nuevo usuario administrador.
+2. Carga los datos de prueba en el servidor mientras estás dentro del proyecto:
+   ```bash
+   python manage.py loaddata datos.json
+   ```
 
 ---
 
