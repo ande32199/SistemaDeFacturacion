@@ -16,6 +16,7 @@ class AdminPassword(models.Model):
         return self.username
 
 class Categoria(models.Model):
+    id = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100, unique=True)
     descripcion = models.TextField(blank=True, null=True)
 

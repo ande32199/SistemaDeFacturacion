@@ -64,7 +64,7 @@ DB_HOST=localhost
 DB_PORT=3306
 ```
 
-> **Nota:** La extensión del archivo `.env` es importante.
+> **Nota:** La extensión del archivo `.env` es importante (así no tenga nombre).
 
 ---
 
@@ -97,8 +97,15 @@ python manage.py runserver
 Luego, accede al navegador en la dirección: [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
 ---
+### 8. Antes de iniciar
+ejecuta el archivo admin_password y sigue las instrucciones para generar un nuevo usuario administrador
+para cargar datos de prueba al serbidor estando dentro del proyecto
+```bash
+python manage.py loaddata datos.json
 
-### 8. Ejecutar el programa principal
+---
+
+### 9. Ejecutar el programa principal
 Finalmente, ejecuta el programa principal para iniciar la aplicación:
 ```bash
 python main.py
