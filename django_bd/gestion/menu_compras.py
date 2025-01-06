@@ -1,12 +1,7 @@
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-import os
 import wx
-from gestion.db_connection import Producto, Proveedor, Categoria, Factura, DetalleFactura, Cliente, generar_factura
+from gestion.db_connection import Producto, Proveedor, Categoria, Factura, DetalleFactura, Cliente, generar_factura,Empresa
 from decimal import Decimal
-from gestion.gestion_clientes.agregar_cliente import AgregarCliente
+
 
 class MenuCompras(wx.Frame):
     def __init__(self, parent):
@@ -145,6 +140,7 @@ class MenuCompras(wx.Frame):
             self.list_control.SetItem(index, 3, str(producto.stock))
             self.list_control.SetItem(index, 4, producto.categoria.nombre if producto.categoria else '')
             self.list_control.SetItem(index, 5, producto.proveedor.nombre if producto.proveedor else '')
+
     def volver(self, event):
         self.Parent.Show()
         self.Destroy()
@@ -201,63 +197,6 @@ class MenuCompras(wx.Frame):
         dlg.Destroy()
 
 
-    def generar_pdf_factura(self, factura):
-
-        from django.utils.timezone import localtime # importar la hora local de django para que la fecha sea correcta y acorde con la hora local.
-        # Crear carpeta si no existe
-        if not os.path.exists('facturas'):
-            os.makedirs('facturas')
-
-        # Ruta del PDF
-        pdf_path = f"facturas/factura_{factura.id}.pdf"
-        # Crear documento
-        doc = SimpleDocTemplate(pdf_path, pagesize=letter)
-        elementos = []
-
-        # Estilos
-        styles = getSampleStyleSheet()
-        estilo_titulo = styles['Heading1']
-        estilo_texto = styles['Normal']
-
-        # Encabezado
-        titulo = Paragraph(f"Factura ID: {factura.id}", estilo_titulo)
-        cliente = Paragraph(f"Cliente: {factura.cliente.nombre} {factura.cliente.apellido}", estilo_texto)
-        fecha_formateada = localtime(factura.fecha).strftime('%d de %B de %Y %H:%M:%S') # Formatear la fecha a la hora local
-        fecha = Paragraph(f"Fecha: {fecha_formateada}", estilo_texto)
-        elementos.append(titulo)
-        elementos.append(cliente)
-        elementos.append(fecha)
-        # Tabla de detalles
-        data = [["Código", "Nombre", "Cantidad", "Precio Unitario", "Total"]]
-        for detalle in factura.detalles.all():
-            data.append([
-                detalle.producto.codigo,
-                detalle.producto.nombre,
-                detalle.cantidad,
-                f"${detalle.precio_unitario:.2f}",
-                f"${detalle.precio_total:.2f}"
-            ])
-
-        # Totales
-        data.append(["", "", "", "Subtotal", f"${factura.subtotal:.2f}"])
-        data.append(["", "", "", "IVA", f"${factura.iva:.2f}"])
-        data.append(["", "", "", "Total", f"${factura.total:.2f}"])
-        # Crear tabla con estilos
-        tabla = Table(data, colWidths=[80, 150, 80, 100, 100])
-        tabla.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.beige, colors.lightgrey]),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('FONTSIZE', (0, 0), (-1, -1), 10)
-        ]))
-        elementos.append(tabla)
-        # Crear PDF
-        doc.build(elementos)
 
     def filtrar_por_categoria(self, event):
         """Filtrar productos según la categoría seleccionada"""
@@ -284,6 +223,7 @@ class MenuCompras(wx.Frame):
             self.list_control.SetItem(index, 5, producto.proveedor.nombre)
 
     def generar_factura(self, event):
+        from gestion.gestion_clientes.agregar_cliente import AgregarCliente
         if not self.carrito:
             wx.MessageBox('El carrito está vacío', 'Error', wx.OK | wx.ICON_ERROR)
             return
@@ -366,3 +306,178 @@ class MenuCompras(wx.Frame):
                 wx.MessageBox(f'Error al generar la factura: {str(e)}', 'Error', wx.OK | wx.ICON_ERROR)
         dlg.Destroy()
 
+    def p_generar_pdf_factura(self, factura):
+        import configparser
+        import os
+        from datetime import datetime
+        from django.utils.timezone import localtime
+        from reportlab.lib.pagesizes import letter
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle
+        from reportlab.lib import colors
+        from reportlab.lib.styles import getSampleStyleSheet
+        # Leer configuración
+        config = configparser.ConfigParser()
+        config.read('django_bd/utilidades/config.ini')
+        ruta_base = config.get('Settings', 'ruta', fallback='facturas')
+        # añadir una verificación 
+        if not config.has_section('Settings') or not config.has_option('Settings', 'ruta'):
+            wx.MessageBox('No se ha configurado la ruta para guardar las facturas', 'Error', wx.OK | wx.ICON_ERROR)
+            return
+        # Crear carpeta base si no existe
+        if not os.path.exists(ruta_base):
+            os.makedirs(ruta_base)
+        # Obtener la fecha y formatearla
+        fecha_formateada = localtime(factura.fecha).strftime('%d-%m-%Y')
+        cliente_nombre = f"{factura.cliente.nombre}{factura.cliente.apellido}".replace(" ", "").lower()
+        hora_factura = localtime(factura.fecha).strftime('%H-%M-%S')  # Cambiar formato aquí
+        # Crear ruta completa
+        ruta_fecha = os.path.join(ruta_base, 'facturas', fecha_formateada)
+        ruta_cliente = os.path.join(ruta_fecha, cliente_nombre)
+        if not os.path.exists(ruta_cliente):
+            os.makedirs(ruta_cliente)
+        # Ruta del PDF
+        pdf_path = os.path.join(ruta_cliente, f"factura_{hora_factura}.pdf")
+        # Crear documento
+        doc = SimpleDocTemplate(pdf_path, pagesize=letter)
+        elementos = []
+        # Estilos
+        styles = getSampleStyleSheet()
+        estilo_titulo = styles['Heading1']
+        estilo_texto = styles['Normal']
+        # Encabezado
+        titulo = Paragraph(f"Factura ID: {factura.id}", estilo_titulo)
+        cliente = Paragraph(f"Cliente: {factura.cliente.nombre} {factura.cliente.apellido}", estilo_texto)
+        fecha = Paragraph(f"Fecha: {localtime(factura.fecha).strftime('%d de %B de %Y %H:%M:%S')}", estilo_texto)
+        elementos.append(titulo)
+        elementos.append(cliente)
+        elementos.append(fecha)
+        # Tabla de detalles
+        data = [["Código", "Nombre", "Cantidad", "Precio Unitario", "Total"]]
+        for detalle in factura.detalles.all():
+            data.append([
+                detalle.producto.codigo,
+                detalle.producto.nombre,
+                detalle.cantidad,
+                f"${detalle.precio_unitario:.2f}",
+                f"${detalle.precio_total:.2f}"
+            ])
+        # Totales
+        data.append(["", "", "", "Subtotal", f"${factura.subtotal:.2f}"])
+        data.append(["", "", "", "IVA", f"${factura.iva:.2f}"])
+        data.append(["", "", "", "Total", f"${factura.total:.2f}"])
+        # Crear tabla con estilos
+        tabla = Table(data, colWidths=[80, 150, 80, 100, 100])
+        tabla.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.beige, colors.lightgrey]),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('FONTSIZE', (0, 0), (-1, -1), 10)
+        ]))
+        elementos.append(tabla)
+        # Crear PDF
+        doc.build(elementos)
+
+
+    def generar_pdf_factura(self, factura):
+        import configparser
+        import os
+        import sys
+        from datetime import datetime
+        from django.utils.timezone import localtime
+        from reportlab.lib.pagesizes import letter
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle
+        from reportlab.lib import colors
+        from reportlab.lib.styles import getSampleStyleSheet
+
+        # Leer configuración
+        config = configparser.ConfigParser()
+        config.read('django_bd/utilidades/config.ini')
+        if not config.has_section('Settings') or not config.has_option('Settings', 'ruta'):
+            wx.MessageBox('No se ha configurado la ruta para guardar las facturas', 'Error', wx.OK | wx.ICON_ERROR)
+            return
+        ruta_base = config.get('Settings', 'ruta', fallback='facturas')
+        # Crear carpeta base si no existe
+        if not os.path.exists(ruta_base):
+            os.makedirs(ruta_base)
+        # Obtener la fecha y formatearla
+        fecha_formateada = localtime(factura.fecha).strftime('%d-%m-%Y')
+        cliente_nombre = f"{factura.cliente.nombre}{factura.cliente.apellido}".replace(" ", "").lower()
+        hora_factura = localtime(factura.fecha).strftime('%H-%M-%S')  # Cambiar formato aquí
+        # Crear ruta completa
+        ruta_fecha = os.path.join(ruta_base, 'facturas', fecha_formateada)
+        ruta_cliente = os.path.join(ruta_fecha, cliente_nombre)
+        if not os.path.exists(ruta_cliente):
+            os.makedirs(ruta_cliente)
+        # Ruta del PDF
+        pdf_path = os.path.join(ruta_cliente, f"factura_{hora_factura}.pdf")
+        # Obtener información de la empresa
+        empresa = Empresa.objects.first()
+        # Crear documento
+        doc = SimpleDocTemplate(pdf_path, pagesize=letter)
+        elementos = []
+        # Estilos
+        styles = getSampleStyleSheet()
+        estilo_titulo = styles['Heading1']
+        estilo_texto = styles['Normal']
+        # Encabezado de la empresa
+        empresa_info = [
+            Paragraph(f"{empresa.nombre}", estilo_titulo),
+            Paragraph(f"RUC: {empresa.ruc}", estilo_texto),
+            Paragraph(f"Email: {empresa.email}", estilo_texto),
+            Paragraph(f"Teléfono: {empresa.telefono}", estilo_texto),
+            Paragraph(f"Dirección: {empresa.direccion}", estilo_texto)
+        ]
+        elementos.extend(empresa_info)
+        elementos.append(Paragraph("<br/><br/>", estilo_texto))  # Espacio en blanco
+        # Información de la factura
+        titulo = Paragraph(f"Factura ID: {factura.id}", estilo_titulo)
+        cliente = Paragraph(f"Cliente: {factura.cliente.nombre} {factura.cliente.apellido}", estilo_texto)
+        cliente_cedula = Paragraph(f"Cédula: {factura.cliente.cedula}", estilo_texto)
+        cliente_email = Paragraph(f"Email: {factura.cliente.email}", estilo_texto)
+        cliente_telefono = Paragraph(f"Teléfono: {factura.cliente.telefono}", estilo_texto)
+        cliente_direccion = Paragraph(f"Dirección: {factura.cliente.direccion}", estilo_texto)
+        fecha = Paragraph(f"Fecha: {localtime(factura.fecha).strftime('%d de %B de %Y %H:%M:%S')}", estilo_texto)
+        elementos.append(titulo)
+        elementos.append(cliente)
+        elementos.append(cliente_cedula)
+        elementos.append(cliente_email)
+        elementos.append(cliente_telefono)
+        elementos.append(cliente_direccion)
+        elementos.append(fecha)
+        elementos.append(Paragraph("<br/><br/>", estilo_texto))  # Espacio en blanco
+        # Tabla de detalles
+        data = [["Código", "Nombre", "Descripción", "Cantidad", "Precio Unitario", "Total"]]
+        for detalle in factura.detalles.all():
+            data.append([
+                detalle.producto.codigo,
+                detalle.producto.nombre,
+                detalle.producto.descripcion or "",
+                detalle.cantidad,
+                f"${detalle.precio_unitario:.2f}",
+                f"${detalle.precio_total:.2f}"
+            ])
+        # Totales
+        data.append(["", "", "", "", "Subtotal", f"${factura.subtotal:.2f}"])
+        data.append(["", "", "", "", "IVA", f"${factura.iva:.2f}"])
+        data.append(["", "", "", "", "Total", f"${factura.total:.2f}"])
+        # Crear tabla con estilos
+        tabla = Table(data, colWidths=[80, 150, 200, 80, 100, 100])
+        tabla.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.beige, colors.lightgrey]),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('FONTSIZE', (0, 0), (-1, -1), 10)
+        ]))
+        elementos.append(tabla)
+        # Crear PDF
+        doc.build(elementos)

@@ -5,6 +5,7 @@
 dependencias/
 # ignorar la carpeta facturas
 facturas/
+utilidades/
 # Ignorar archivos generados por el sistema operativo
 __pycache__/
 *.pyc

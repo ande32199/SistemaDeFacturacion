@@ -1,20 +1,20 @@
 import wx
 from gestion.agregar_actualiza import Formulario
-from gestion.db_connection import Proveedor
+from gestion.db_connection import Empresa
 
-class FormularioProveedor(Formulario):
-    def __init__(self, parent, proveedor=None, title="Formulario de Proveedor", actualizar_lista_callback=None):
+class FormularioEmpresa(Formulario):
+    def __init__(self, parent, empresa=None, title="Formulario de Empresa", actualizar_lista_callback=None):
         super().__init__(parent, title)
         self.actualizar_lista_callback = actualizar_lista_callback  # Guardar el callback
         
         # Indica si estamos editando o creando
-        self.proveedor_existente = proveedor
-        self.modo_edicion = proveedor is not None
+        self.empresa_existente = empresa
+        self.modo_edicion = empresa is not None
         
-        # Ajuste de campos específicos para Proveedor
+        # Reorganizar campos específicos para Empresa
         self.surname_label.Destroy()
         self.surname_input.Destroy()
-        self.name_label.SetLabel("Nombre del Proveedor:")
+        self.name_label.SetLabel("Razón Social:")
 
         # Añadir campo RUC antes del nombre
         self.ruc_label = wx.StaticText(self.panel, label="RUC:")
@@ -39,47 +39,47 @@ class FormularioProveedor(Formulario):
         self.sizer.Add(self.direccion_input, 1, wx.EXPAND | wx.ALL, 5)
 
         # Añadir botones de guardar y cancelar
-        self.agregar_botones(self.guardar_proveedor, self.cancelar)
+        self.agregar_botones(self.guardar_empresa, self.cancelar)
 
-        # Si hay un proveedor existente, cargar sus datos
-        if self.proveedor_existente:
-            self.cargar_datos_proveedor()
+        # Si hay una empresa existente, cargar sus datos
+        if self.empresa_existente:
+            self.cargar_datos_empresa()
 
         # Ajustar el tamaño del formulario
         self.SetSize((400, 450))
 
         # Método para manejar el guardado
-        self.guardar_callback = self.guardar_proveedor
+        self.guardar_callback = self.guardar_empresa
 
-    def cargar_datos_proveedor(self):
-        """Carga los datos del proveedor existente en el formulario"""
-        self.ruc_input.SetValue(self.proveedor_existente.ruc)
-        self.name_input.SetValue(self.proveedor_existente.nombre)
-        self.email_input.SetValue(self.proveedor_existente.email or '')
-        self.telefono_input.SetValue(self.proveedor_existente.telefono or '')
-        self.direccion_input.SetValue(self.proveedor_existente.direccion or '')
+    def cargar_datos_empresa(self):
+        """Carga los datos de la empresa existente en el formulario"""
+        self.ruc_input.SetValue(self.empresa_existente.ruc)
+        self.name_input.SetValue(self.empresa_existente.nombre)
+        self.email_input.SetValue(self.empresa_existente.email or '')
+        self.telefono_input.SetValue(self.empresa_existente.telefono or '')
+        self.direccion_input.SetValue(self.empresa_existente.direccion or '')
 
-    def guardar_proveedor(self, event):
-        """Método para guardar o actualizar el proveedor"""
+    def guardar_empresa(self, event):
+        """Método para guardar o actualizar la empresa"""
         if self.validar_datos():
             datos = self.get_datos()
             try:
                 if self.modo_edicion:
-                    # Actualizar proveedor existente
+                    # Actualizar empresa existente
                     for key, value in datos.items():
                         if key != 'ruc':  # No actualizar el RUC
-                            setattr(self.proveedor_existente, key, value)
-                    self.proveedor_existente.save()
-                    mensaje = "Proveedor actualizado exitosamente"
+                            setattr(self.empresa_existente, key, value)
+                    self.empresa_existente.save()
+                    mensaje = "Empresa actualizada exitosamente"
                 else:
-                    # Crear nuevo proveedor
-                    proveedor = Proveedor(**datos)
-                    proveedor.save()
-                    mensaje = "Proveedor guardado exitosamente"
+                    # Crear nueva empresa
+                    empresa = Empresa(**datos)
+                    empresa.save()
+                    mensaje = "Empresa guardada exitosamente"
 
                 wx.MessageBox(mensaje, "Éxito", wx.OK | wx.ICON_INFORMATION)
                 if self.actualizar_lista_callback:
-                    self.actualizar_lista_callback()  # Llamar al callback para actualizar la lista de proveedores
+                    self.actualizar_lista_callback()  # Llamar al callback para actualizar la lista de empresas
                 self.Close()
             except Exception as e:
                 wx.MessageBox(f"Error al guardar: {str(e)}", "Error", wx.OK | wx.ICON_ERROR)
@@ -108,7 +108,7 @@ class FormularioProveedor(Formulario):
             return False
 
         if not nombre:
-            wx.MessageBox("El nombre del proveedor es obligatorio", "Error de validación", wx.OK | wx.ICON_ERROR)
+            wx.MessageBox("La Razón Social es obligatoria", "Error de validación", wx.OK | wx.ICON_ERROR)
             return False
 
         return True

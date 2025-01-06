@@ -6,7 +6,7 @@ from django.conf import settings
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django_bd.settings')
 django.setup()
 
-from facturacion.models import Cliente,Proveedor,Categoria,Producto,Factura,DetalleFactura,AdminPassword
+from facturacion.models import Cliente,Proveedor,Categoria,Producto,Factura,DetalleFactura,AdminPassword,Empresa
 
 def ObtenerClientes():
     return [f"{cliente.cedula} - {cliente.nombre} {cliente.apellido}" for cliente in Cliente.objects.all()]
