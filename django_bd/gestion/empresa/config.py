@@ -14,7 +14,7 @@ class Configuraciones(wx.Panel):
         super().__init__(parent)
 
         # Crear cuadros de edición
-        lbl_ruta = wx.StaticText(self, label="Ruta:")
+        lbl_ruta = wx.StaticText(self, label="Selecciona la Ruta donde se almacenarán las facturas:")
         self.ruta_txt = wx.TextCtrl(self, size=(300, -1))
         self.boton_buscar = wx.Button(self, label="Seleccionar Ruta")
         lbl_iva = wx.StaticText(self, label="IVA (%):")

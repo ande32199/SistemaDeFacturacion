@@ -1,9 +1,9 @@
 import wx
 from gestion.gestion_producto.producto import PanelProductos
 from gestion.gestion_clientes.cliente import PanelClientes
-from gestion.gestion_proveedor_categoria.ui_proveedor_categoria import PanelProveedor,PanelCategoria
+from gestion.gestion_proveedor_categoria.ui_proveedor_categoria import PanelProveedor
 from gestion.empresa.config import Configuraciones
-
+from gestion.gestion_proveedor_categoria.Categoria import PanelCategoria,FormularioCategoria
 
 class VentanaAdmin(wx.Frame):
     def __init__(self, parent):
