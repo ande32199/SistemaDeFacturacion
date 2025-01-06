@@ -31,7 +31,8 @@ class VentanaBienvenida(wx.Frame):
         # Imagen
         try:
             ruta_imagen = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logo.jpg")
-            image = wx.Image(ruta_imagen, wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+            image = wx.Image(ruta_imagen, wx.BITMAP_TYPE_ANY)
+            image = image.Scale(200, 150, wx.IMAGE_QUALITY_HIGH).ConvertToBitmap()  # Redimensiona la imagen
             image_ctrl = wx.StaticBitmap(panel, wx.ID_ANY, image)
         except Exception as e:
             wx.MessageBox(f"No se pudo cargar la imagen: {e}", "Error", wx.ICON_ERROR)
@@ -61,11 +62,13 @@ class VentanaBienvenida(wx.Frame):
         btn_salir.Bind(wx.EVT_BUTTON, self.salir)
         
         # Añadir widgets al sizer
+        sizer.AddStretchSpacer()
         sizer.Add(titulo, 0, wx.ALL | wx.CENTER, 20)
         sizer.Add(image_ctrl, 0, wx.ALL | wx.CENTER, 20)
         sizer.Add(btn_admin, 0, wx.ALL | wx.CENTER, 10)
         sizer.Add(btn_compras, 0, wx.ALL | wx.CENTER, 10)
         sizer.Add(btn_salir, 0, wx.ALL | wx.CENTER, 10)
+        sizer.AddStretchSpacer()
         
         panel.SetSizer(sizer)
         self.Centre()
